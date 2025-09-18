@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='qrcode.css') }}">
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}QR code para ordem de serviço{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% if qrdata %}
+        <p class="print">Identificação do veículo: {{placa}}</p>
+
+
+        <img class="print" src={{qrdata}} width="500px" height="500px"/>
+    {% else %}
+        <span class="bad"> Erro gerando QRcode.</span>
+    {% endif %}
+{% endblock %}

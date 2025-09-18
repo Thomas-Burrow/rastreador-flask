@@ -1,0 +1,32 @@
+{% extends 'scan.html' %}
+
+{% block content %}
+{{ super() }}
+<form method="POST">
+
+{% if oficina_completa %}
+<input class="low-priority" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</inpit>
+{% else %}
+<input class="primary" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</input>
+{% endif %}
+
+{% if teste_completo %}
+<input class="low-priority" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</input>
+{% else %}
+<input class="primary" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</input>
+
+{% endif %}
+
+{% if lavagem_completa %}
+<input class="low-priority" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</input>
+
+{% else %}
+<input class="primary" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</input>
+
+{% endif %}
+
+{% if pode_completar %}
+<input class="primary" type="submit" name="operation" value="marcar-completo">Marcar como completo</input>
+{% endif %}
+</form>
+{% endblock %}

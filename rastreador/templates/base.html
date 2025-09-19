@@ -6,6 +6,8 @@
   <h1>Rastreador</h1>
   
   <ul>
+    <li><a href={{url_for('scan.dash')}}>Dashboard</a>
+    <li><a href={{url_for('ordem.criar')}}>Criar Ordem</a>
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span>
       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>

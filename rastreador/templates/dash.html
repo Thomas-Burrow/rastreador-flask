@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Dashboard{% endblock %}</h1>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='dash.css') }}">
+{% endblock %}
+
+
+{% block content %}
+  <div class="container">
+  {% for veiculo in veiculos %}
+    <div class="veiculo"> <a href={{url_for('scan.scan', id=veiculo.id)}}>{{veiculo.placa}}</a> <br> {{veiculo.status}}</div>
+
+  {%endfor%}
+
+{% endblock %}

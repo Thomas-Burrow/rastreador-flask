@@ -116,3 +116,20 @@ def update_retirado(dbcon,id):
     cur = dbcon.cursor()
     cur.execute("UPDATE ordem_servico SET estado=(?) WHERE id=(?)", (Estado.RETIRADO.value, id))
     dbcon.commit()
+
+
+class Veiculo:
+    def __init__(self,placa,status,id):
+        self.placa = placa
+        self.status = status
+        self.id = id
+
+
+@bp.route('/dash')
+def dash():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('SELECT placa, estado, id FROM ordem_servico WHERE estado <> "Retirado"' ) #TODO: mostrar retirados recentes, mas não aqueles retirados muito antes
+    allrows = cur.fetchall()
+    veiculos = [Veiculo(row[0],row[1],row[2]) for row in allrows]
+    return render_template("dash.html", veiculos=veiculos)

@@ -5,28 +5,28 @@
 <form method="POST">
 
 {% if oficina_completa %}
-<input class="low-priority" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</inpit>
+<button class="low-priority" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</button>
 {% else %}
-<input class="primary" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</input>
+<button class="primary" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</button>
 {% endif %}
 
 {% if teste_completo %}
-<input class="low-priority" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</input>
+<button class="low-priority" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</button>
 {% else %}
-<input class="primary" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</input>
+<button class="primary" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</button>
 
 {% endif %}
 
 {% if lavagem_completa %}
-<input class="low-priority" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</input>
+<button class="low-priority" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</button>
 
 {% else %}
-<input class="primary" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</input>
+<button class="primary" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</button>
 
 {% endif %}
 
 {% if pode_completar %}
-<input class="primary" type="submit" name="operation" value="marcar-completo">Marcar como completo</input>
+<button class="primary" type="submit" name="operation" value="marcar-completo">Marcar como completo</button>
 {% endif %}
 </form>
 {% endblock %}

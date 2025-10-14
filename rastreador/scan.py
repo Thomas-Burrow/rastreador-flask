@@ -114,7 +114,7 @@ def update_completo(dbcon,id):
 
 def update_retirado(dbcon,id):
     cur = dbcon.cursor()
-    cur.execute("UPDATE ordem_servico SET estado=(?) WHERE id=(?)", (Estado.RETIRADO.value, id))
+    cur.execute("UPDATE ordem_servico SET estado=(?),retirado_em=(?) WHERE id=(?)", (Estado.RETIRADO.value, datetime.now(), id))
     dbcon.commit()
 
 

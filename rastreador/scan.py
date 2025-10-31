@@ -6,7 +6,7 @@ from flask import (
 from rastreador.db import get_db
 from rastreador.ordem import Estado
 from rastreador.cargos import pode_alterar_status
-#TODO: require auth
+from datetime import datetime
 bp = Blueprint('scan', __name__,)
 
 @bp.route('/scan/<id>', methods=('GET', 'POST'))

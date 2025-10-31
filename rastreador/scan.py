@@ -5,11 +5,14 @@ from flask import (
 )
 from rastreador.db import get_db
 from rastreador.ordem import Estado
+from rastreador.cargos import pode_alterar_status
 #TODO: require auth
 bp = Blueprint('scan', __name__,)
 
 @bp.route('/scan/<id>', methods=('GET', 'POST'))
 def scan(id):
+    if not pode_alterar_status(g.user):
+        return redirect(get_url('auth.login'))
     db = get_db()
     cur = db.cursor()
     cur.execute('SELECT placa, estado, oficina_completa, teste_completo, lavagem_completa FROM ordem_servico where id=(?)', id)

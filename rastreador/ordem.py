@@ -8,6 +8,7 @@ import base64
 from enum import Enum
 from io import BytesIO
 from rastreador.db import get_db
+from rastreador.cargos import pode_criar_pedido
 
 bp = Blueprint('ordem', __name__, url_prefix='/ordem')
 
@@ -42,6 +43,8 @@ class Estado(Enum):
 
 @bp.route('/criar', methods=('GET', 'POST'))
 def criar():
+    if not pode_criar_pedido(g.user):
+        return "Falha na autorização.", 403
     if request.method == 'POST':
         placa = request.form['placa']
         db = get_db()
@@ -69,6 +72,8 @@ def criar():
 
 @bp.route('/qrcode/<id>')
 def imprimir_qrcode(id):
+    if not pode_criar_pedido(g.user):
+        return "Falha na autorização.", 403
     qrdata = None
     if id is not None:
         db = get_db()

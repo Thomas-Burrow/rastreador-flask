@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Visualizar status de ordem de serviço{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<span class="info">Identificação do veículo: {{placa}}</span>
+<br>
+<span class="status">Atualmente: {{estado}}</span>
+<br><hr>
+
+
+{% endblock %}

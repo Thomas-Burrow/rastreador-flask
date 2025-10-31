@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 
+import rastreador.cargos
 import click
 from flask import current_app, g
 
@@ -34,6 +35,7 @@ def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
     click.echo('Initialized the database.')
+
 
 
 sqlite3.register_converter(

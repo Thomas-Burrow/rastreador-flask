@@ -31,7 +31,10 @@ def create_app(test_config=None):
     from . import scan
     app.register_blueprint(scan.bp)
 
+    from . import role
+    app.register_blueprint(role.bp)
+
     @app.route("/")
-    def hello_world():
+    def index():
         return render_template("index.html")
     return app

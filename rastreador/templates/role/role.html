@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Editar cargo de usuário{% endblock %}</h1>
+{% endblock %}
+
+
+
+{% block content %}
+  <div class="container">
+  {% for u in usuarios %}
+    <div class="usuario"> <a href={{url_for('role.edit', id=u.id)}}>{{u.username}} : {{u.cargo}}</a></div>
+
+  {%endfor%}
+
+{% endblock %}

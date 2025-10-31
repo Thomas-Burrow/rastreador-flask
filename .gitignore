@@ -3,7 +3,7 @@
 __pycache__/
 instance/
 
-.pytest_Cache
+.pytest_cache
 .coverage
 htmlob
 dist/

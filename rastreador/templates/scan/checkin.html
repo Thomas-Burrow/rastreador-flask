@@ -1,32 +1,35 @@
 {% extends 'scan.html' %}
 
 {% block content %}
+<div class="tablet-screen">
 {{ super() }}
 <form method="POST">
-
+<div class = "scanner-area">
 {% if oficina_completa %}
-<button class="low-priority" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</button>
+<button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</button>
 {% else %}
-<button class="primary" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</button>
 {% endif %}
 
 {% if teste_completo %}
-<button class="low-priority" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</button>
+<button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</button>
 {% else %}
-<button class="primary" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</button>
 
 {% endif %}
 
 {% if lavagem_completa %}
-<button class="low-priority" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</button>
+<button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</button>
 
 {% else %}
-<button class="primary" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</button>
 
 {% endif %}
 
 {% if pode_completar %}
-<button class="primary" type="submit" name="operation" value="marcar-completo">Marcar como completo</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="marcar-completo">Marcar como completo</button>
 {% endif %}
 </form>
+</div>
+</div>
 {% endblock %}

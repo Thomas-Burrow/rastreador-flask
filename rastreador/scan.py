@@ -127,6 +127,21 @@ class Veiculo:
         self.status = status
         self.id = id
 
+    def get_class_for_status(self):
+        match self.status:
+            case Estado.AGUARDANDO.value:
+                return "status-aguardando"
+            case Estado.OFICINA.value:
+                return "status-servico"
+            case Estado.TESTE.value:
+                return "status-teste"
+            case Estado.LAVAGEM.value:
+                return "status-lavagem"
+            case Estado.COMPLETO.value:
+                return "status-pronto"
+            case _:
+                return "status-chegada"
+            
 
 @bp.route('/dash')
 def dash():

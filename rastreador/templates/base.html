@@ -2,12 +2,10 @@
 <title>{% block title %}{% endblock %} - Rastreador</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% block extra_css%} {%endblock%}
-<nav>
-  <h1>Rastreador</h1>
+<nav class="screen-nav">
+  <h1><a href="{{url_for('index')}}">Rastreador</a></h1>
   
   <ul>
-    <li><a href={{url_for('scan.dash')}}>Dashboard</a>
-    <li><a href={{url_for('ordem.criar')}}>Criar Ordem</a>
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span>
       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
@@ -17,7 +15,7 @@
     {% endif %}
   </ul>
 </nav>
-<section class="content">
+<section class="content-wrapper">
   <header>
     {% block header %}{% endblock %}
   </header>

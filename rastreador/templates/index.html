@@ -5,7 +5,10 @@
 {% endblock %}
 
 {% block content %}
-  <span>Em construção.</span>
+{% if g.user %}
+  <p><a href="{{ url_for('scan.dash') }}">Dashboard</a></p>
   <p><a href="{{ url_for('ordem.criar') }}">Criar ordem de serviço</a></p>
-    
+{% else %}
+  Realize login para acessar as funcionalidades do rastreador.
+{% endif %}
 {% endblock %}

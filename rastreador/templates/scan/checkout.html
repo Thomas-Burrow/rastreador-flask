@@ -1,8 +1,12 @@
 {% extends 'scan.html' %}
 
 {% block content %}
+<div class="tablet-screen">
 {{ super() }}
+<div class="scanner-area">
 <form method="POST">
-<button type="submit" name="operation" value="checkout">Fazer checkout</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="checkout">Fazer checkout</button>
 </form>
+</div>
+</div>
 {% endblock %}

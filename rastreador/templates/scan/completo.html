@@ -1,10 +1,14 @@
 {% extends 'scan.html' %}
 
 {% block content %}
+<div class="tablet-screen">
 {{ super() }}
+<div class="scanner-area">
 <form method="post">
 
-<button class="primary" type="submit" name="operation" value="marcar-retirado">Marcar como retirado</button>
+<button class="btn-primary btn-big" type="submit" name="operation" value="marcar-retirado">Marcar como retirado</button>
 
 </form>
+</div>
+</div>
 {% endblock %}

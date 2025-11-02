@@ -34,6 +34,9 @@ def create_app(test_config=None):
     from . import role
     app.register_blueprint(role.bp)
 
+    from . import api
+    app.register_blueprint(api.bp)
+
     @app.route("/")
     def index():
         return render_template("index.html")

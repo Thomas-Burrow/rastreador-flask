@@ -5,9 +5,11 @@ import pytest
 from rastreador import create_app
 from rastreador.db import get_db, init_db
 
+#TODO: criar um usuario de teste e veiculos de teste para inserir no contexto de teste
 with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
     _data_sql = f.read().decode('utf8')
 
+#veja https://flask.palletsprojects.com/en/stable/testing/ e https://docs.pytest.org/en/stable/ para saber o que está acontecendo
 
 @pytest.fixture
 def app():

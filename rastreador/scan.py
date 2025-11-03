@@ -9,53 +9,62 @@ from rastreador.cargos import pode_alterar_status
 from datetime import datetime
 bp = Blueprint('scan', __name__,)
 
+
+
 @bp.route('/scan/<id>', methods=('GET', 'POST'))
 def scan(id):
     if not pode_alterar_status(g.user):
         return redirect(get_url('auth.login'))
     db = get_db()
     cur = db.cursor()
-    cur.execute('SELECT placa, estado, oficina_completa, teste_completo, lavagem_completa FROM ordem_servico where id=(?)', id)
+    cur.execute('SELECT placa, estado FROM ordem_servico where id=(?)', id)
     row = cur.fetchone()
     placa = row[0]
     estado_atual = row[1]
-    oficina_completa = row[2]
-    teste_completo = row[3]
-    lavagem_completa = row[4]
-    estado_enum = Estado(estado_atual)
-    pode_completar = oficina_completa and teste_completo and lavagem_completa
+    try:
+        estado_enum = Estado(estado_atual)
+    except:
+        estado_enum = Estado.AGUARDANDO #Não deve acontecer com o banco de dados em boa condição, mas caso aconteça...
+    oficina_completa = estado_enum > Estado.OFICINA
+    teste_completo = estado_enum > Estado.TESTE
+    lavagem_completa = estado_enum > Estado.LAVAGEM
     if request.method == 'POST': #mude o estado com base no estado atual e a operação solicitada
         operation = request.form['operation']
         if(operation is None):
             return redirect(get_url('scan.scan', id=id))
-        match estado_atual:
-            case Estado.AGUARDANDO.value: #TODO: Determinar se veiculo pode ser consertado, testado e lavado em qualquer order ou se tem uma ordem fixa para essas operações para refinar os estados
-                match operation: #TODO: mover estes strings para um enum, para prevenir erros de digitação
-                    case "corrigir-lavagem": #teoricamente esses 3 comandos não fazem nada se o bool não está setado então não checamos com um if
-                        update_unset(db, id, "lavagem_completa")
-                    case "corrigir-teste":
-                        update_unset(db, id, "teste_completo")
-                    case "corrigir-oficina":
-                        update_unset(db, id, "oficina_completa")
+        match estado_enum:
+            case Estado.AGUARDANDO:
+                match operation:
                     case "checkin-oficina":
                         update_checkin(db, id, "oficina")
-                    case "checkin-teste":
-                        update_checkin(db, id, "teste")
-                    case "checkin-lavagem":
-                        update_checkin(db, id, "lavagem")
-                    case "marcar-completo":
-                        if pode_completar: #esse sim precisa de checagem
-                            update_completo(db, id)
                     case _:
                         flash ("Erro na operação")
-            case Estado.OFICINA.value | Estado.TESTE.value | Estado.LAVAGEM.value:
+            case Estado.AGUARDANDO_TESTE:
+                match operation:
+                    case "corrigir-oficina":
+                        update_unset(db, id, "oficina_completa")
+                    case "checkin-teste":
+                        update_checkin(db, id, "teste")
+                    case _:
+                        flash("Erro na operação")
+            case Estado.AGUARDANDO_LAVAGEM:
+                match operation:
+                    case "corrigir-teste":
+                        update_unset(db, id, "teste_completo")
+                    case "checkin-lavagem":
+                        update_checkin(db, id, "lavagem")
+                    case _:
+                        flash("Erro na operação")
+            case Estado.OFICINA | Estado.TESTE | Estado.LAVAGEM: #TODO: Separar oficina dos demais para lidar com as subetapas da oficina
                 match operation:
                     case "checkout":
                         update_checkout(db, id, estado_atual)
                     case _:
                         flash ("Erro na operação")
-            case Estado.COMPLETO.value:
+            case Estado.COMPLETO:
                 match operation:
+                    case "corrigir-lavagem":
+                        update_unset(db, id, "lavagem_completa")
                     case "marcar-retirado":
                         update_retirado(db, id)
                     case _:
@@ -66,24 +75,33 @@ def scan(id):
         return redirect(url_for('scan.scan', id=id))
 
     #mostre a pagina certa para o estado atual
-    match estado_atual:
-        case Estado.AGUARDANDO.value:
-            return render_template("scan/checkin.html", placa=placa, estado=estado_enum.get_msg(), oficina_completa=oficina_completa, teste_completo=teste_completo, lavagem_completa=lavagem_completa, pode_completar=pode_completar)
-        case Estado.OFICINA.value | Estado.TESTE.value | Estado.LAVAGEM.value:
+    match estado_enum:
+        case Estado.AGUARDANDO | Estado.AGUARDANDO_TESTE | Estado.AGUARDANDO_LAVAGEM:
+            return render_template("scan/checkin.html", placa=placa, estado=estado_enum.get_msg(), oficina_completa=oficina_completa, teste_completo=teste_completo, lavagem_completa=lavagem_completa)
+        case Estado.OFICINA | Estado.TESTE | Estado.LAVAGEM:
             return render_template("scan/checkout.html", placa=placa, estado=estado_enum.get_msg())
-        case Estado.COMPLETO.value:
+        case Estado.COMPLETO:
             return render_template("scan/completo.html", placa=placa, estado=estado_enum.get_msg())
-        case Estado.RETIRADO.value:
+        case Estado.RETIRADO:
             return render_template("scan/retirado.html", placa=placa, estado=estado_enum.get_msg())
-        case _:
-            return render_template("scan.html")
+
             
 
 #TODO: adicionar logging para todas estas funções do banco de dados
 def update_unset(dbcon, id, alvo): #Em teoria deve não deve permitir injeção porque alvo não é diretamente entrado pelo usuario
     cur = dbcon.cursor()
-    query = f"UPDATE ordem_servico SET {alvo}=0 WHERE id=(?)"
-    cur.execute(query,(id))
+    query = "UPDATE ordem_servico SET estado=(?) WHERE id=(?)"
+    match alvo:
+        case "oficina_completa":
+            novo_estado = Estado.AGUARDANDO.value
+        case "teste_completo":
+            novo_estado = Estado.AGUARDANDO_TESTE.value
+        case "lavagem_completa":
+            novo_estado = Estado.AGUARDANDO_LAVAGEM.value
+        case _:
+            novo_estado = Estado.AGUARDANDO.value
+            
+    cur.execute(query,(novo_estado, id))
     dbcon.commit()
 
 
@@ -102,11 +120,11 @@ def update_checkout(dbcon, id, alvo):
     cur = dbcon.cursor()
     match alvo:
         case Estado.OFICINA.value:
-            cur.execute("UPDATE ordem_servico SET estado=(?),oficina_completa=1 WHERE id=(?)", (Estado.AGUARDANDO.value, id))
+            cur.execute("UPDATE ordem_servico SET estado=(?) WHERE id=(?)", (Estado.AGUARDANDO_TESTE.value, id))
         case Estado.TESTE.value:
-            cur.execute("UPDATE ordem_servico SET estado=(?),teste_completo=1 WHERE id=(?)", (Estado.AGUARDANDO.value, id))
+            cur.execute("UPDATE ordem_servico SET estado=(?),teste_completo=1 WHERE id=(?)", (Estado.AGUARDANDO_LAVAGEM.value, id))
         case Estado.LAVAGEM.value:
-            cur.execute("UPDATE ordem_servico SET estado=(?),lavagem_completa=1 WHERE id=(?)", (Estado.AGUARDANDO.value, id))
+            cur.execute("UPDATE ordem_servico SET estado=(?),lavagem_completa=1 WHERE id=(?)", (Estado.COMPLETO.value, id))
     dbcon.commit()
 
 

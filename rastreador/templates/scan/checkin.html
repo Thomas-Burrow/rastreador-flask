@@ -5,30 +5,27 @@
 {{ super() }}
 <form method="POST">
 <div class = "scanner-area">
-{% if oficina_completa %}
+{% if oficina_completa and not teste_completo %}
 <button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-oficina">Marcar oficina como incompleto</button>
-{% else %}
+{% elif not oficina_completa %}
 <button class="btn-primary btn-big" type="submit" name="operation" value="checkin-oficina">Fazer checkin para oficina</button>
+{% else %}
 {% endif %}
 
-{% if teste_completo %}
+{% if teste_completo and not lavagem_completa %}
 <button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-teste">Marcar teste como incompleto</button>
-{% else %}
+{% elif oficina_completa and not lavagem_completa %}
 <button class="btn-primary btn-big" type="submit" name="operation" value="checkin-teste">Fazer checkin para teste</button>
-
+{% else %}
 {% endif %}
 
 {% if lavagem_completa %}
 <button class="btn-secondary btn-big" type="submit" name="operation" value="corrigir-lavagem">Marcar lavagem como incompleto</button>
-
-{% else %}
+{% elif teste_completo %}
 <button class="btn-primary btn-big" type="submit" name="operation" value="checkin-lavagem">Fazer checkin para lavagem</button>
-
+{% else %}
 {% endif %}
 
-{% if pode_completar %}
-<button class="btn-primary btn-big" type="submit" name="operation" value="marcar-completo">Marcar como completo</button>
-{% endif %}
 </form>
 </div>
 </div>

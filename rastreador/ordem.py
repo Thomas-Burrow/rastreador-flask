@@ -12,23 +12,28 @@ from rastreador.cargos import pode_criar_pedido
 
 bp = Blueprint('ordem', __name__, url_prefix='/ordem')
 
-#TODO require auth
-
 class Estado(Enum):
-    AGUARDANDO = "Aguardando"
-    OFICINA = "Oficina"
+    #TODO: Adicionar aguardando programação se nescessário
+    AGUARDANDO = "Aguardando serviço"
+    OFICINA = "Oficina" #TODO: expandir maq. de estado para oficina
+    AGUARDANDO_TESTE = "Aguardando teste"
     TESTE = "Testagem"
+    AGUARDANDO_LAVAGEM = "Aguardando lavagem"
     LAVAGEM = "Lavagem"
     COMPLETO = "Completo"
     RETIRADO = "Retirado"
 
     def get_msg(self):
         if self == self.AGUARDANDO:
-            return "Aguardando."
+            return "Aguardando serviço."
         if self == self.OFICINA:
             return "Na oficina."
+        if self == self.AGUARDANDO_TESTE:
+            return "Aguardando testagem."
         if self == self.TESTE:
             return "Em teste."
+        if self == self.AGUARDANDO_LAVAGEM:
+            return "Aguardando lavagem."
         if self == self.LAVAGEM:
             return "Em lavagem."
         if self == self.COMPLETO:
@@ -36,6 +41,10 @@ class Estado(Enum):
         if self == self.RETIRADO:
             return "Marcado como retirado pelo cliente."
         return "Desconhecido."
+
+    def __gt__(self,outro):
+        ordem = [Estado.AGUARDANDO, Estado.OFICINA, Estado.AGUARDANDO_TESTE, Estado.TESTE, Estado.AGUARDANDO_LAVAGEM, Estado.LAVAGEM, Estado.COMPLETO, Estado.RETIRADO]
+        return ordem.index(self) > ordem.index(outro)
 
 
 
@@ -52,9 +61,6 @@ def criar():
 
         if not placa:
             flash("Sem placa.")
-
-
-
         try:
             cur.execute(
             "INSERT INTO ordem_servico (placa, estado) VALUES (?, ?)",

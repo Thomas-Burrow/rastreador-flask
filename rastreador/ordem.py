@@ -52,6 +52,8 @@ class Estado(Enum):
 
 @bp.route('/criar', methods=('GET', 'POST'))
 def criar():
+    if not g.user:
+        return redirect(url_for('auth.login'))
     if not pode_criar_pedido(g.user):
         return "Falha na autorização.", 403
     if request.method == 'POST':
@@ -78,6 +80,8 @@ def criar():
 
 @bp.route('/qrcode/<id>')
 def imprimir_qrcode(id):
+    if not g.user:
+        return redirect(url_for('auth.login'))
     if not pode_criar_pedido(g.user):
         return "Falha na autorização.", 403
     qrdata = None

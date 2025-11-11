@@ -13,8 +13,10 @@ bp = Blueprint('scan', __name__,)
 
 @bp.route('/scan/<id>', methods=('GET', 'POST'))
 def scan(id):
+    if not g.user:
+        return redirect(url_for('auth.login'))
     if not pode_alterar_status(g.user):
-        return redirect(get_url('auth.login'))
+        return "Falha na autorização.", 403
     db = get_db()
     cur = db.cursor()
     cur.execute('SELECT placa, estado FROM ordem_servico where id=(?)', id)

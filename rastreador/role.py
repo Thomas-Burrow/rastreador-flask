@@ -11,6 +11,8 @@ bp = Blueprint('role', __name__,)
 
 @bp.route('/users')
 def users():
+    if not g.user:
+        return redirect(url_for('auth.login'))
     if not pode_alterar_cargo(g.user):
         return "Falha na autorização.", 403
     db = get_db()
@@ -23,6 +25,8 @@ def users():
 
 @bp.route('/alterar_cargo/<id>', methods=('GET', 'POST'))
 def edit(id):
+    if not g.user:
+        return redirect(url_for('auth.login'))
     if not pode_alterar_cargo(g.user):
         return "Falha na autorização.", 403
     db = get_db()

@@ -38,3 +38,13 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+@pytest.fixture
+def auth(client):
+    class AuthActions:
+        def login(self, username, password):
+            return client.post('/auth/login', data={'username': username, 'password': password})
+        
+        def logout(self):
+            return client.get('/auth/logout')
+    return AuthActions()

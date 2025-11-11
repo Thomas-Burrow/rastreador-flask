@@ -24,5 +24,6 @@ CREATE TABLE logs (
   ordem_servico_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
   acao TEXT NOT NULL,
+  payload TEXT,
   quando TIMESTAMP
 );

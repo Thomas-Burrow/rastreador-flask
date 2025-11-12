@@ -5,5 +5,6 @@ VALUES
 
 INSERT INTO ordem_servico (placa, estado)
 VALUES
+  ('AAA-1234', 'Retirado'),
   ('AAA-1234', 'Teste'),
   ('XYZ12C4', 'Oficina');

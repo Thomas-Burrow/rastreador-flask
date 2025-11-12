@@ -37,3 +37,29 @@ def get_veiculos():
     veiculo_schema = VeiculoSchema(many=True)
     result = veiculo_schema.dump(veiculos)
     return jsonify(result)
+
+@bp.route('/veiculo/por_placa/<placa>', methods=['GET'])
+def get_veiculo_por_placa(placa):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('SELECT placa, estado, id FROM ordem_servico WHERE placa = (?) COLLATE NOCASE ORDER BY id DESC', (placa,))
+    row = cur.fetchone()
+    if row is None:
+        return "{}\n", 404
+    veiculo = Veiculo(row[0],row[1],row[2])
+    veiculo_schema = VeiculoSchema()
+    result = veiculo_schema.dump(veiculo)
+    return jsonify(result)
+
+@bp.route('/veiculo/por_id/<id>', methods=['GET'])
+def get_veiculo_por_id(id):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('SELECT placa, estado, id FROM ordem_servico WHERE id = (?)', id)
+    row = cur.fetchone()
+    if row is None:
+        return "{}\n", 404
+    veiculo = Veiculo(row[0],row[1],row[2])
+    veiculo_schema = VeiculoSchema()
+    result = veiculo_schema.dump(veiculo)
+    return jsonify(result)

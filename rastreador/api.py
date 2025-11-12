@@ -25,6 +25,7 @@ class VeiculoSchema(ma.Schema):
     placa = fields.Str(required=True)
     status = fields.Str(required=True)
     id = fields.Int(required=True)
+    retirado_em = fields.DateTime("iso")
 
 #Semelhante ao dashboard, mas JSON
 @bp.route('/veiculos', methods=['GET'])
@@ -62,4 +63,17 @@ def get_veiculo_por_id(id):
     veiculo = Veiculo(row[0],row[1],row[2])
     veiculo_schema = VeiculoSchema()
     result = veiculo_schema.dump(veiculo)
+    return jsonify(result)
+
+@bp.route('/ordens/por_placa/<placa>', methods=['GET'])
+def ordens_por_placa(placa):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('SELECT placa, estado, id, retirado_em FROM ordem_servico WHERE placa=(?) COLLATE NOCASE', (placa,) )
+    allrows = cur.fetchall()
+    if len(allrows) < 1:
+        return "{}", 404
+    ordens = [Veiculo(row[0],row[1],row[2], row[3]) for row in allrows]
+    veiculo_schema = VeiculoSchema(many=True)
+    result = veiculo_schema.dump(ordens)
     return jsonify(result)

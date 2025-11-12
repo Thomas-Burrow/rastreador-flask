@@ -137,15 +137,16 @@ def update_completo(dbcon,id):
 
 def update_retirado(dbcon,id):
     cur = dbcon.cursor()
-    cur.execute("UPDATE ordem_servico SET estado=(?),retirado_em=(?) WHERE id=(?)", (Estado.RETIRADO.value, datetime.now(), id))
+    cur.execute("UPDATE ordem_servico SET estado=(?),retirado_em=(?) WHERE id=(?)", (Estado.RETIRADO.value, datetime.now().isoformat(), id))
     dbcon.commit()
 
-
 class Veiculo:
-    def __init__(self,placa,status,id):
+    def __init__(self,placa,status,id,retirado_em=None):
         self.placa = placa
         self.status = status
         self.id = id
+        self.retirado_em = retirado_em
+
 
     def get_class_for_status(self):
         match self.status:

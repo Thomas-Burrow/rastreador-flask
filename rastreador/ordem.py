@@ -1,7 +1,15 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
+    Blueprint,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+    current_app,
 )
 import qrcode
 import base64
@@ -10,12 +18,13 @@ from io import BytesIO
 from rastreador.db import get_db
 from rastreador.cargos import pode_criar_pedido
 
-bp = Blueprint('ordem', __name__, url_prefix='/ordem')
+bp = Blueprint("ordem", __name__, url_prefix="/ordem")
+
 
 class Estado(Enum):
-    #TODO: Adicionar aguardando programação se nescessário
+    # TODO: Adicionar aguardando programação se nescessário
     AGUARDANDO = "Aguardando serviço"
-    OFICINA = "Oficina" #TODO: expandir maq. de estado para oficina
+    OFICINA = "Oficina"  # TODO: expandir maq. de estado para oficina
     AGUARDANDO_TESTE = "Aguardando teste"
     TESTE = "Testagem"
     AGUARDANDO_LAVAGEM = "Aguardando lavagem"
@@ -42,22 +51,28 @@ class Estado(Enum):
             return "Marcado como retirado pelo cliente."
         return "Desconhecido."
 
-    def __gt__(self,outro):
-        ordem = [Estado.AGUARDANDO, Estado.OFICINA, Estado.AGUARDANDO_TESTE, Estado.TESTE, Estado.AGUARDANDO_LAVAGEM, Estado.LAVAGEM, Estado.COMPLETO, Estado.RETIRADO]
+    def __gt__(self, outro):
+        ordem = [
+            Estado.AGUARDANDO,
+            Estado.OFICINA,
+            Estado.AGUARDANDO_TESTE,
+            Estado.TESTE,
+            Estado.AGUARDANDO_LAVAGEM,
+            Estado.LAVAGEM,
+            Estado.COMPLETO,
+            Estado.RETIRADO,
+        ]
         return ordem.index(self) > ordem.index(outro)
 
 
-
-
-
-@bp.route('/criar', methods=('GET', 'POST'))
+@bp.route("/criar", methods=("GET", "POST"))
 def criar():
     if not g.user:
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("auth.login"))
     if not pode_criar_pedido(g.user):
         return "Falha na autorização.", 403
-    if request.method == 'POST':
-        placa = request.form['placa']
+    if request.method == "POST":
+        placa = request.form["placa"]
         db = get_db()
         cur = db.cursor()
 
@@ -65,40 +80,42 @@ def criar():
             flash("Sem placa.")
         try:
             cur.execute(
-            "INSERT INTO ordem_servico (placa, estado) VALUES (?, ?)",
-            (placa, Estado.AGUARDANDO.value) #nescessario usar .value para não dar erro
+                "INSERT INTO ordem_servico (placa, estado) VALUES (?, ?)",
+                (
+                    placa,
+                    Estado.AGUARDANDO.value,
+                ),  # nescessario usar .value para não dar erro
             )
             db.commit()
             novo_id = cur.lastrowid
             flash("Ordem de serviço criada")
             return redirect(url_for("ordem.imprimir_qrcode", id=novo_id))
         except OSError:
-            flash("Erro na connexão com banco de dados")        
+            flash("Erro na connexão com banco de dados")
 
-    return render_template('ordem.html')
+    return render_template("ordem.html")
 
 
-@bp.route('/qrcode/<id>')
+@bp.route("/qrcode/<id>")
 def imprimir_qrcode(id):
     if not g.user:
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("auth.login"))
     if not pode_criar_pedido(g.user):
         return "Falha na autorização.", 403
     qrdata = None
     if id is not None:
         db = get_db()
         cur = db.cursor()
-        cur.execute('SELECT placa FROM ordem_servico where id=(?)', id)
+        cur.execute("SELECT placa FROM ordem_servico where id=(?)", id)
         placa = cur.fetchone()[0]
         buffer = BytesIO()
         img = qrcode.make(url_for("scan.scan", _external=True, id=id))
         img.save(buffer, format="PNG")
-        image_bytes=buffer.getvalue()
-        base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
+        image_bytes = buffer.getvalue()
+        base64_encoded = base64.b64encode(image_bytes).decode("utf-8")
         qrdata = f"data:image/png;base64,{base64_encoded}"
-        #current_app.logger.debug("QRdata = %s", qrdata)
+        # current_app.logger.debug("QRdata = %s", qrdata)
     else:
         flash("Erro no ID")
 
-    return render_template('qr.html', qrdata=qrdata, placa=placa)
-    
+    return render_template("qr.html", qrdata=qrdata, placa=placa)

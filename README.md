@@ -15,3 +15,7 @@
 * Veja `https://pre-commit.com/` para mais informações
 1. Com as dependencias instaladas e com o venv ativo, rode `pre-commit install`
 2. Realize o commit e as ferramentas rodarão daquele ponto em diante.
+
+## Servindo com gunicorn
+* Veja [a documentação](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/) para mais informações
+1. `gunicorn -c gunicorn_config.py rastreador:create_app()`

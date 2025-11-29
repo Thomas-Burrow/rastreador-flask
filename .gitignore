@@ -9,3 +9,6 @@ htmlob
 dist/
 build/
 *.egg_info/
+
+secrets
+secrets/*

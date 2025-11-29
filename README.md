@@ -1,9 +1,12 @@
 # Um sistema para rastrear carros, agora em uma lingua mais accessivel
-## Como Instalar
+## Como Instalar (modo desenvolvimento)
 1. Crie um venv e ative-lo como é customário para evitar problemas com depencias `python -m venv .venv; source .venv/bin/activate`
 2. Instale as dependencias: `pip install -r requirements.txt`
-3. Inicie sqlite: `flask --app rastreador init-db`
-4. Rode em modo desenvolvedor: `flask --app rastreador run --debug`
+3. Configure sua instalação de MariaDB (MySQL) e copie secrets-example/config.py para secrets/config.py, alterando os campos para refletir a configuração do banco de dados
+4. Instale config.py em instance/ se vai executar os proximos comandos
+5. Repita os ultimos dois passos para config-test.py para poder rodar pytest
+6. Carregue o schema para o servidor SQL: `flask --app rastreador init-db`
+7. Rode em modo desenvolvedor: `flask --app rastreador run --debug`
 
 ## Promovendo usuarios para podered acessar as paginas
 1. Crie um usuario

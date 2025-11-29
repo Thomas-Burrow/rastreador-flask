@@ -23,7 +23,7 @@ def get_cargo_username(user):
 def get_cargo_id(id):
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT cargo FROM user where id=(?)", id)
+    cur.execute("SELECT cargo FROM user where id=(?)", (id,))
     row = cur.fetchone()
     return row[0]
 

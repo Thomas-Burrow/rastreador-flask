@@ -1,33 +1,54 @@
-import sqlite3
+import mariadb
 from datetime import datetime
 
 import rastreador.cargos
+from rastreador.models import Veiculo, Estado
 import click
 from flask import current_app, g
 
+conn_params = None  # Nos vamos inicializar estes dados depois, quando o aplicativo estiver andando (para o comando init_db funcionar)
 
-def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(
-            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
+# Sempre deve ter comunicação com o banco de dados
+pool = None
 
-    return g.db
+
+def get_db() -> mariadb.Connection:
+    global pool  # uma ideia duvidosa, mas já que somente é modificado nesta funcão e só é inicializado quando nulo não deve apresentar problemas sérios
+    global conn_params
+    if conn_params is None:
+        conn_params = {
+            "user": current_app.config["MARIADB_USER"],
+            "password": current_app.config["MARIADB_PASSWORD"],
+            "host": current_app.config["MARIADB_HOST"],
+            "database": current_app.config["MARIADB_DBNAME"],
+        }
+    if pool is None:
+        pool = mariadb.ConnectionPool(pool_name="Walrus", pool_size=30, **conn_params)
+    # get connection from our connection pool
+    return pool.get_connection()
 
 
 def close_db(e=None):
-    db = g.pop("db", None)
-
-    if db is not None:
-        db.close()
+    global pool
+    if pool is not None:
+        pool.close()
+        pool = None
 
 
 def init_db():
-    db = get_db()
+    conn = get_db()
+    cursor = conn.cursor()
+    conn.begin()
 
     with current_app.open_resource("schema.sql") as f:
-        db.executescript(f.read().decode("utf8"))
+        schema = f.read().decode("utf8")
+        for statement in schema.split(
+            ";"
+        ):  # ao inves do sqlite, precisamos quebrar o schema em pedaços executaveis
+            if statement.strip():  # evita executar vazios
+                cursor.execute(statement)
+    conn.commit()
+    print("Schema loaded successfully.")
 
 
 @click.command("init-db")
@@ -37,9 +58,31 @@ def init_db_command():
     click.echo("Initialized the database.")
 
 
-sqlite3.register_converter("timestamp", lambda v: datetime.fromisoformat(v.decode()))
-
-
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+
+
+def placa_e_estado(id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT placa, estado FROM ordem_servico where id=(?)", (id,))
+    row = cur.fetchone()
+    placa = row[0]
+    estado_atual = row[1]
+    try:
+        estado_enum = Estado(estado_atual)
+    except:
+        estado_enum = Estado.AGUARDANDO
+    return (placa, estado_enum)
+
+
+def veiculos_pendentes():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        'SELECT placa, estado, id FROM ordem_servico WHERE estado <> "Retirado"'
+    )  # TODO: mostrar retirados recentes, mas não aqueles retirados muito antes
+    allrows = cur.fetchall()
+    veiculos = [Veiculo(row[0], row[1], row[2]) for row in allrows]
+    return veiculos

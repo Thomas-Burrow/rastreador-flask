@@ -5,32 +5,30 @@ import pytest
 from rastreador import create_app
 from rastreador.db import get_db, init_db
 
-# TODO: criar um usuario de teste e veiculos de teste para inserir no contexto de teste
-with open(os.path.join(os.path.dirname(__file__), "data.sql"), "rb") as f:
-    _data_sql = f.read().decode("utf8")
 
 # veja https://flask.palletsprojects.com/en/stable/testing/ e https://docs.pytest.org/en/stable/ para saber o que está acontecendo
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def app():
-    db_fd, db_path = tempfile.mkstemp()
-
-    app = create_app(
-        {
-            "TESTING": True,
-            "DATABASE": db_path,
-        }
-    )
+    app = create_app(True)
 
     with app.app_context():
         init_db()
-        get_db().executescript(_data_sql)
+        conn = get_db()
+        cursor = conn.cursor()
+        conn.begin()
+
+        with open(os.path.join(os.path.dirname(__file__), "data.sql"), "rb") as f:
+            data = f.read().decode("utf8")
+            for statement in data.split(
+                ";"
+            ):  # ao inves do sqlite, precisamos quebrar o schema em pedaços executaveis
+                if statement.strip():  # evita executar vazios
+                    cursor.execute(statement)
+        conn.commit()
 
     yield app
-
-    os.close(db_fd)
-    os.unlink(db_path)
 
 
 @pytest.fixture

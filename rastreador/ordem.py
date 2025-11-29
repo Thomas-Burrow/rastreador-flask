@@ -13,56 +13,12 @@ from flask import (
 )
 import qrcode
 import base64
-from enum import Enum
 from io import BytesIO
 from rastreador.db import get_db
 from rastreador.cargos import pode_criar_pedido
+from rastreador.models import Estado
 
 bp = Blueprint("ordem", __name__, url_prefix="/ordem")
-
-
-class Estado(Enum):
-    # TODO: Adicionar aguardando programação se nescessário
-    AGUARDANDO = "Aguardando serviço"
-    OFICINA = "Oficina"  # TODO: expandir maq. de estado para oficina
-    AGUARDANDO_TESTE = "Aguardando teste"
-    TESTE = "Testagem"
-    AGUARDANDO_LAVAGEM = "Aguardando lavagem"
-    LAVAGEM = "Lavagem"
-    COMPLETO = "Completo"
-    RETIRADO = "Retirado"
-
-    def get_msg(self):
-        if self == self.AGUARDANDO:
-            return "Aguardando serviço."
-        if self == self.OFICINA:
-            return "Na oficina."
-        if self == self.AGUARDANDO_TESTE:
-            return "Aguardando testagem."
-        if self == self.TESTE:
-            return "Em teste."
-        if self == self.AGUARDANDO_LAVAGEM:
-            return "Aguardando lavagem."
-        if self == self.LAVAGEM:
-            return "Em lavagem."
-        if self == self.COMPLETO:
-            return "Aguardando retirada."
-        if self == self.RETIRADO:
-            return "Marcado como retirado pelo cliente."
-        return "Desconhecido."
-
-    def __gt__(self, outro):
-        ordem = [
-            Estado.AGUARDANDO,
-            Estado.OFICINA,
-            Estado.AGUARDANDO_TESTE,
-            Estado.TESTE,
-            Estado.AGUARDANDO_LAVAGEM,
-            Estado.LAVAGEM,
-            Estado.COMPLETO,
-            Estado.RETIRADO,
-        ]
-        return ordem.index(self) > ordem.index(outro)
 
 
 @bp.route("/criar", methods=("GET", "POST"))
@@ -106,7 +62,7 @@ def imprimir_qrcode(id):
     if id is not None:
         db = get_db()
         cur = db.cursor()
-        cur.execute("SELECT placa FROM ordem_servico where id=(?)", id)
+        cur.execute("SELECT placa FROM ordem_servico where id=(?)", (id,))
         placa = cur.fetchone()[0]
         buffer = BytesIO()
         img = qrcode.make(url_for("scan.scan", _external=True, id=id))

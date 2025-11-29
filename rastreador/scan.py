@@ -11,8 +11,8 @@ from flask import (
     url_for,
     current_app,
 )
-from rastreador.db import get_db
-from rastreador.ordem import Estado
+from rastreador.db import get_db, placa_e_estado, veiculos_pendentes
+from rastreador.models import Estado, Veiculo
 from rastreador.cargos import pode_alterar_status
 from datetime import datetime
 
@@ -28,21 +28,13 @@ def scan(id):
         return redirect(url_for("auth.login"))
     if not pode_alterar_status(g.user):
         return "Falha na autorização.", 403
-    db = get_db()
-    cur = db.cursor()
-    cur.execute("SELECT placa, estado FROM ordem_servico where id=(?)", id)
-    row = cur.fetchone()
-    placa = row[0]
-    estado_atual = row[1]
-    try:
-        estado_enum = Estado(estado_atual)
-    except:
-        estado_enum = (
-            Estado.AGUARDANDO
-        )  # Não deve acontecer com o banco de dados em boa condição, mas caso aconteça...
+    (placa, estado_enum) = placa_e_estado(id)
+    estado_atual = estado_enum.value
     oficina_completa = estado_enum > Estado.OFICINA
     teste_completo = estado_enum > Estado.TESTE
     lavagem_completa = estado_enum > Estado.LAVAGEM
+    db = get_db()
+
     if (
         request.method == "POST"
     ):  # mude o estado com base no estado atual e a operação solicitada
@@ -169,12 +161,12 @@ def update_checkout(dbcon, id, alvo):
             )
         case Estado.TESTE.value:
             cur.execute(
-                "UPDATE ordem_servico SET estado=(?),teste_completo=1 WHERE id=(?)",
+                "UPDATE ordem_servico SET estado=(?) WHERE id=(?)",
                 (Estado.AGUARDANDO_LAVAGEM.value, id),
             )
         case Estado.LAVAGEM.value:
             cur.execute(
-                "UPDATE ordem_servico SET estado=(?),lavagem_completa=1 WHERE id=(?)",
+                "UPDATE ordem_servico SET estado=(?) WHERE id=(?)",
                 (Estado.COMPLETO.value, id),
             )
     dbcon.commit()
@@ -192,41 +184,12 @@ def update_retirado(dbcon, id):
     cur = dbcon.cursor()
     cur.execute(
         "UPDATE ordem_servico SET estado=(?),retirado_em=(?) WHERE id=(?)",
-        (Estado.RETIRADO.value, datetime.now().isoformat(), id),
+        (Estado.RETIRADO.value, datetime.now(), id),
     )
     dbcon.commit()
 
 
-class Veiculo:
-    def __init__(self, placa, status, id, retirado_em=None):
-        self.placa = placa
-        self.status = status
-        self.id = id
-        self.retirado_em = retirado_em
-
-    def get_class_for_status(self):
-        match self.status:
-            case Estado.AGUARDANDO.value:
-                return "status-aguardando"
-            case Estado.OFICINA.value:
-                return "status-servico"
-            case Estado.TESTE.value:
-                return "status-teste"
-            case Estado.LAVAGEM.value:
-                return "status-lavagem"
-            case Estado.COMPLETO.value:
-                return "status-pronto"
-            case _:
-                return "status-chegada"
-
-
 @bp.route("/dash")
 def dash():
-    db = get_db()
-    cur = db.cursor()
-    cur.execute(
-        'SELECT placa, estado, id FROM ordem_servico WHERE estado <> "Retirado"'
-    )  # TODO: mostrar retirados recentes, mas não aqueles retirados muito antes
-    allrows = cur.fetchall()
-    veiculos = [Veiculo(row[0], row[1], row[2]) for row in allrows]
+    veiculos = veiculos_pendentes()
     return render_template("dash.html", veiculos=veiculos)

@@ -19,8 +19,7 @@ from io import BytesIO
 from rastreador.db import get_db
 from flask_marshmallow import Marshmallow
 from marshmallow import Schema, fields, validate
-from rastreador.ordem import Estado
-from rastreador.scan import Veiculo
+from rastreador.models import Estado, Veiculo
 
 # TODO: falar com grupo do banco de dados para criar um campo com chave de API para usuario
 #   com intuito de permitir operações que modificam o estado sejam associadas com um usuario
@@ -57,8 +56,10 @@ def get_veiculos():
 def get_veiculo_por_placa(placa):
     db = get_db()
     cur = db.cursor()
+    # utf8mb4_general_ci quer dizer UTF8, usando 1 a 4 bytes port caracter, comparando rapidarente de uma forma insensitiva a caso (ex. a = A)
+    # utf8mb4_unicode_ci é mais correta, mas mais lente e caracteres que expandem ou contraem para mais de um caractere realmente não devem aperecer em uma placa (ex. ß = ss)
     cur.execute(
-        "SELECT placa, estado, id FROM ordem_servico WHERE placa = (?) COLLATE NOCASE ORDER BY id DESC",
+        "SELECT placa, estado, id FROM ordem_servico WHERE placa = (?) COLLATE utf8mb4_general_ci ORDER BY id DESC",
         (placa,),
     )
     row = cur.fetchone()
@@ -74,7 +75,7 @@ def get_veiculo_por_placa(placa):
 def get_veiculo_por_id(id):
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT placa, estado, id FROM ordem_servico WHERE id = (?)", id)
+    cur.execute("SELECT placa, estado, id FROM ordem_servico WHERE id = (?)", (id,))
     row = cur.fetchone()
     if row is None:
         return "{}\n", 404
@@ -89,7 +90,7 @@ def ordens_por_placa(placa):
     db = get_db()
     cur = db.cursor()
     cur.execute(
-        "SELECT placa, estado, id, retirado_em FROM ordem_servico WHERE placa=(?) COLLATE NOCASE",
+        "SELECT placa, estado, id, retirado_em FROM ordem_servico WHERE placa=(?) COLLATE utf8mb4_general_ci",
         (placa,),
     )
     allrows = cur.fetchall()

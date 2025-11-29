@@ -2,16 +2,24 @@ import os
 from flask import Flask, render_template
 
 
-def create_app(test_config=None):
+def create_app(test_config=False):
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY="dev", DATABASE=os.path.join(app.instance_path, "db.sqlite")
-    )
-    if test_config is None:
-        app.config.from_pyfile("config.py", silent=True)
+    if test_config is False:
+        if os.path.exists(
+            "/run/secret/config.py"
+        ):  # TODO: puxe esses valores do /run/secret/ e nome de arquivo para variaveis
+            app.config.from_pyfile(
+                "/run/secret/config.py", silent=True
+            )  # quando em podman/docker
+        else:
+            app.config.from_pyfile(
+                "config.py", silent=True
+            )  # quando desenvolvendo fora do container
     else:
-        app.config.from_mapping(test_config)
-    app.config["SQLALCHEMY_ECHO"] = True
+        if os.path.exists("/run/secret/config-test.py"):
+            app.config.from_pyfile("/run/secret/config-test.py")
+        else:
+            app.config.from_pyfile("config-test.py")
 
     try:
         os.makedirs(app.instance_path)

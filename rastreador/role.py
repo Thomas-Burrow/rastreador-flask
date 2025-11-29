@@ -43,7 +43,7 @@ def edit(id):
         return "Falha na autorização.", 403
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT cargo, username FROM user where id=(?)", id)
+    cur.execute("SELECT cargo, username FROM user where id=(?)", (id,))
     row = cur.fetchone()
     cargo = row[0]
     username = row[1]

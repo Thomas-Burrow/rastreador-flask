@@ -33,7 +33,8 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        db = get_db()
+        conn = get_db()
+        cur = conn.cursor()
         error = None
 
         if not username:
@@ -43,11 +44,11 @@ def register():
 
         if error is None:
             try:
-                db.execute(
+                cur.execute(
                     "INSERT INTO user (username, password) VALUES (?, ?)",
                     (username, generate_password_hash(password)),
                 )
-                db.commit()
+                conn.commit()
             except db.IntegrityError:
                 error = f"User {username} is already registered."
             else:
@@ -63,20 +64,24 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        db = get_db()
+        conn = get_db()
+        cur = conn.cursor()
         error = None
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+        cur.execute("SELECT * FROM user WHERE username = ?", (username,))
+        user = cur.fetchone()
+        user_pass = user[2]
+        user_id = user[0]
 
         if user is None:
             error = "Incorrect username."
-        elif not check_password_hash(user["password"], password):
+        elif not check_password_hash(
+            user_pass, password
+        ):  # TODO: consertar esses indices para serem constantes, mariadb nos entrege um tuple
             error = "Incorrect password."
 
         if error is None:
             session.clear()
-            session["user_id"] = user["id"]
+            session["user_id"] = user_id
             return redirect(url_for("index"))
 
         flash(error)
@@ -91,8 +96,13 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        u = get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
-        g.user = User(u["cargo"], u["username"], u["id"])
+        cursor = get_db().cursor()
+        cursor.execute("SELECT * FROM user WHERE id = ?", (user_id,))
+        u = cursor.fetchone()
+        user_cargo = u[3]
+        user_id = u[0]
+        user_name = u[1]
+        g.user = User(user_cargo, user_name, user_id)
 
 
 @bp.route("/logout")

@@ -2,9 +2,7 @@
 ## Como Instalar (modo desenvolvimento)
 1. Crie um venv e ative-lo como é customário para evitar problemas com depencias `python -m venv .venv; source .venv/bin/activate`
 2. Instale as dependencias: `pip install -r requirements.txt`
-3. Configure sua instalação de MariaDB (MySQL) e copie secrets-example/config.py para secrets/config.py, alterando os campos para refletir a configuração do banco de dados
-4. Instale config.py em instance/ se vai executar os proximos comandos
-5. Repita os ultimos dois passos para config-test.py para poder rodar pytest
+3. Configure sua instalação de MariaDB (MySQL), criando usuarios e banco de dados para rodar e pytest, dando permissões para os usuarios para seus respectivos bancos de dados e copie as configurações secrets/config(-test)?.py para secrets/ se quer rodar em um container (composefile não implementado aindo) ou instance/ para rodar no venv
 6. Carregue o schema para o servidor SQL: `flask --app rastreador init-db`
 7. Rode em modo desenvolvedor: `flask --app rastreador run --debug`
 
@@ -18,6 +16,13 @@
 * Veja `https://pre-commit.com/` para mais informações
 1. Com as dependencias instaladas e com o venv ativo, rode `pre-commit install`
 2. Realize o commit e as ferramentas rodarão daquele ponto em diante.
+
+## Basicos do SQL
+* Altere valores para os valores desejados.
+1. Connecte para seu banco de dados como root
+2. Crie Usuarios: `create user 'dbuser'@'localhost' identified by 'senha';` e `create user 'pytest'@'localhost' identified by 'senha';`
+3. Crie bancos de dados: `create database rastreador;` e `create database rastreadorteste;`
+4. Permita que usuarios mexam nos bancos de dados: `grant all privileges on rastreadorteste.* to 'pytest'@'localhost';` e`grant all privileges on rastreador.* to 'dbuser'@'localhost';`
 
 ## Servindo com gunicorn
 * Veja [a documentação](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/) para mais informações

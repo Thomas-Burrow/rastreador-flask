@@ -4,7 +4,7 @@ from datetime import datetime
 import rastreador.cargos
 from rastreador.models import Veiculo, Estado
 import click
-from flask import current_app, g
+from flask import Blueprint, current_app, g
 
 conn_params = None  # Nos vamos inicializar estes dados depois, quando o aplicativo estiver andando (para o comando init_db funcionar)
 
@@ -58,9 +58,25 @@ def init_db_command():
     click.echo("Initialized the database.")
 
 
+@click.command("dump-conn-params")
+def dump_conn_params():
+    """Reveals the connection params."""
+    global conn_params
+    if conn_params is None:
+        conn_params = {
+            "user": current_app.config["MARIADB_USER"],
+            "password": current_app.config["MARIADB_PASSWORD"],
+            "host": current_app.config["MARIADB_HOST"],
+            "database": current_app.config["MARIADB_DBNAME"],
+        }
+    for param in conn_params:
+        print(f"{param}: {conn_params[param]}")
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(dump_conn_params)
 
 
 def placa_e_estado(id):

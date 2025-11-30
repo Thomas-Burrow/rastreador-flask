@@ -5,21 +5,9 @@ from flask import Flask, render_template
 def create_app(test_config=False):
     app = Flask(__name__, instance_relative_config=True)
     if test_config is False:
-        if os.path.exists(
-            "/run/secret/config.py"
-        ):  # TODO: puxe esses valores do /run/secret/ e nome de arquivo para variaveis
-            app.config.from_pyfile(
-                "/run/secret/config.py", silent=True
-            )  # quando em podman/docker
-        else:
-            app.config.from_pyfile(
-                "config.py", silent=True
-            )  # quando desenvolvendo fora do container
+        app.config.from_pyfile("config.py", silent=True)
     else:
-        if os.path.exists("/run/secret/config-test.py"):
-            app.config.from_pyfile("/run/secret/config-test.py")
-        else:
-            app.config.from_pyfile("config-test.py")
+        app.config.from_pyfile("config-test.py")
 
     try:
         os.makedirs(app.instance_path)

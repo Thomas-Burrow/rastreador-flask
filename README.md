@@ -27,3 +27,9 @@
 ## Servindo com gunicorn
 * Veja [a documentação](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/) para mais informações
 1. `gunicorn -c gunicorn_config.py rastreador:create_app()`
+
+
+## Containerização
+1. Execute `docker compose up`
+2. Visite a interface e crie um usuario.
+3. Execute `docker compose exec app flask --app rastreador auth promote username` para promover este usuario para poder editar as coisas

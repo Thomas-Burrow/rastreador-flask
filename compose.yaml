@@ -6,8 +6,8 @@ services:
     expose:
       - 8080
     volumes:
-      - ./rastreador:/rastreador:ro
-      - ./instance:/instance:ro
+      - ./rastreador:/app/rastreador:ro
+      - ./instance:/app/instance:ro
     depends_on:
       - db
   db:
